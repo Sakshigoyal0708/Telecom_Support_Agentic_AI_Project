@@ -1,3 +1,14 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  padding: 24px 20px;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

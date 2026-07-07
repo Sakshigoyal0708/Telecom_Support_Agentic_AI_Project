@@ -1,0 +1,57 @@
+.app-header,
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--surface, #fff);
+  border-bottom: 1px solid var(--border, #e6e6e6);
+}
+
+.app-header .header-logo {
+  height: 36px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border, #e6e6e6);
+  border-radius: 999px;
+  background: #f8f9fb;
+}
+
+.user-icon {
+  font-size: 16px;
+}
+
+.header-username {
+  font-weight: 600;
+}
+
+.app-footer {
+  border-top: 1px solid var(--border, #e6e6e6);
+  border-bottom: none;
+  font-size: 14px;
+}
+
+.footer-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.footer-link {
+  color: var(--text, #333);
+  text-decoration: none;
+}
+
+.footer-sep {
+  color: var(--muted, #888);
+}
