@@ -1,17 +1,21 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import './CreateAccount.css'
 import { isEmailValid, isStrongPassword, isSingleWordName, isPhoneValid } from './LoginValidations'
+import { registerApi } from './services/authService'
 
-export default function CreateAccount({ onSwitchToLogin }) {
+export default function CreateAccount({ onSwitchToLogin, onRegisterSuccess }) {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '' })
+  const [apiError, setApiError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
+    setApiError('')
     // validations
     const firstErr = isSingleWordName(firstName) ? '' : 'First name should be a single word (letters only)'
     const lastErr = isSingleWordName(lastName) ? '' : 'Last name should be a single word (letters only)'
@@ -22,10 +26,27 @@ export default function CreateAccount({ onSwitchToLogin }) {
     setErrors({ firstName: firstErr, lastName: lastErr, email: emailErr, phone: phoneErr, password: passErr })
     if (firstErr || lastErr || emailErr || phoneErr || passErr) return
 
-    // TODO: wire to backend
-    console.log('Create account', { firstName, lastName, email, phone })
-    alert('Account created for ' + email)
-    if (onSwitchToLogin) onSwitchToLogin()
+    try {
+      setIsSubmitting(true)
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
+      const payload = await registerApi({
+        fullName,
+        email,
+        phone,
+        password,
+      })
+
+      if (onRegisterSuccess) {
+        onRegisterSuccess(payload)
+      } else if (onSwitchToLogin) {
+        onSwitchToLogin()
+      }
+    } catch (error) {
+      console.error('Create account request failed:', error)
+      setApiError(error?.response?.data?.error || 'Failed to create account. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -63,13 +84,22 @@ export default function CreateAccount({ onSwitchToLogin }) {
           {errors.password && <div className="error-text">{errors.password}</div>}
         </label>
 
-        <button type="submit" className="create-button">Create account</button>
+        <button type="submit" className="create-button" disabled={isSubmitting}>
+          {isSubmitting ? 'Creating account...' : 'Create account'}
+        </button>
+        {apiError && <div className="error-text" role="alert">{apiError}</div>}
 
         <div className="register">
           Already have an account?{' '}
-          <a href="#" onClick={(e) => { e.preventDefault(); if (onSwitchToLogin) onSwitchToLogin(); }}>
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => {
+              if (onSwitchToLogin) onSwitchToLogin()
+            }}
+          >
             Login
-          </a>
+          </button>
         </div>
       </form>
     </div>

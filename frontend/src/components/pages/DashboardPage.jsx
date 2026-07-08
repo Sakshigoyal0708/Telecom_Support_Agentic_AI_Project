@@ -23,7 +23,7 @@ const ACTION_ITEMS = [
   { label: "Create Handoff Summary", icon: "→" },
 ];
 
-const DashboardPage = () => {
+const DashboardPage = ({ authUser, onLogout }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
@@ -114,7 +114,10 @@ const DashboardPage = () => {
                 <a href="/billing-behavior">Billing AI</a>
                 <a href="/troubleshooting">Troubleshooting AI</a>
               </nav>
-              <div className="nav-user">Operator Console</div>
+              <div className="top-nav-actions">
+                <div className="nav-user">{authUser?.fullName || "Operator Console"}</div>
+                <button type="button" className="nav-logout-btn" onClick={onLogout}>Logout</button>
+              </div>
             </div>
 
             <div className="dashboard-header">

@@ -64,16 +64,30 @@
   opacity: 0.95;
 }
 
+.login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .register {
   margin-top: 14px;
   text-align: center;
   font-size: 14px;
 }
 
-.register a {
+.register a,
+.register .link-button {
   color: var(--accent, #0b5cff);
   text-decoration: none;
   font-weight: 600;
+}
+
+.register .link-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font-size: inherit;
 }
 
 .error-text {

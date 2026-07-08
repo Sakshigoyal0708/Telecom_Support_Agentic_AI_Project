@@ -1,33 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './LoginPage.css'
-import { isEmailValid, isStrongPassword } from './LoginValidations'
+import { isEmailValid } from './LoginValidations'
+import { loginApi } from './services/authService'
 
-export default function LoginPage({ onSwitchToCreate }) {
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [remember, setRemember] = useState(false);
-	const [errors, setErrors] = useState({ email: '', password: '' });
+function getRememberedCredentials() {
+	const saved = localStorage.getItem('telecom_remember')
+	if (!saved) {
+		return { email: '', remember: false }
+	}
 
-	useEffect(() => {
-		const saved = localStorage.getItem('telecom_remember');
-		if (saved) {
-			try {
-				const obj = JSON.parse(saved);
-				setEmail(obj.email || '');
-				setRemember(!!obj.remember);
-			} catch (e) {
-				// ignore
-			}
+	try {
+		const obj = JSON.parse(saved)
+		return {
+			email: obj.email || '',
+			remember: !!obj.remember,
 		}
-	}, []);
+	} catch (error) {
+		console.error('Invalid remember-me data in localStorage:', error)
+		return { email: '', remember: false }
+	}
+}
 
-	function handleSubmit(e) {
+export default function LoginPage({ onSwitchToCreate, onLoginSuccess }) {
+	const remembered = getRememberedCredentials()
+	const [email, setEmail] = useState(remembered.email);
+	const [password, setPassword] = useState('');
+	const [remember, setRemember] = useState(remembered.remember);
+	const [errors, setErrors] = useState({ email: '', password: '' });
+	const [apiError, setApiError] = useState('');
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	async function handleSubmit(e) {
 		e.preventDefault();
+		setApiError('')
 		// validations
-		const emailErr = isEmailValid(email) ? '' : 'Enter a valid email (example@domain.com)'
-		const passErr = isStrongPassword(password)
-			? ''
-			: 'Password must include uppercase, lowercase, number, and special character, and be at least 8 characters long'
+		const normalizedEmail = String(email || '').trim()
+		const emailErr = isEmailValid(normalizedEmail) ? '' : 'Enter a valid email (example@domain.com)'
+		const passErr = password.trim() ? '' : 'Password is required'
 
 		setErrors({ email: emailErr, password: passErr })
 		if (emailErr || passErr) return
@@ -41,8 +50,19 @@ export default function LoginPage({ onSwitchToCreate }) {
 			localStorage.removeItem('telecom_remember');
 		}
 
-		// TODO: replace with real authentication call
-		console.log('Login attempt', { email, password, remember });
+		try {
+			setIsSubmitting(true)
+			const data = await loginApi({ email: normalizedEmail, password })
+
+			if (onLoginSuccess) {
+				onLoginSuccess(data)
+			}
+		} catch (error) {
+			console.error('Login request failed:', error)
+			setApiError(error?.response?.data?.error || 'Unable to connect to server. Please ensure backend is running.')
+		} finally {
+			setIsSubmitting(false)
+		}
 	}
 
 	return (
@@ -83,20 +103,24 @@ export default function LoginPage({ onSwitchToCreate }) {
 					<span>Remember me</span>
 				</label>
 
-				<button type="submit" className="login-button">Login</button>
+				<button type="submit" className="login-button" disabled={isSubmitting}>
+					{isSubmitting ? 'Logging in...' : 'Login'}
+				</button>
+				{apiError && <div className="error-text" role="alert">{apiError}</div>}
 
 				<div className="register">
 					Not registered?{' '}
-					<a
-						href="#"
+					<button
+						type="button"
+						className="link-button"
 						onClick={(e) => {
 							e.preventDefault()
 							if (onSwitchToCreate) onSwitchToCreate()
-							else window.location.href = '/register'
+							else globalThis.location.href = '/register'
 						}}
 					>
 						Create an account
-					</a>
+					</button>
 				</div>
 			</form>
 		</div>
