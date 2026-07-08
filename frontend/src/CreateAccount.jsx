@@ -3,6 +3,18 @@ import './CreateAccount.css'
 import { isEmailValid, isStrongPassword, isSingleWordName, isPhoneValid } from './LoginValidations'
 import { registerApi } from './services/authService'
 
+function validateField(name, value) {
+  if (name === 'email') {
+    return isEmailValid(value) ? '' : 'Enter a valid email (example@domain.com)'
+  }
+
+  if (name === 'phone') {
+    return isPhoneValid(value) ? '' : 'Phone must be 10 digits'
+  }
+
+  return ''
+}
+
 export default function CreateAccount({ onSwitchToLogin, onRegisterSuccess }) {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -12,6 +24,23 @@ export default function CreateAccount({ onSwitchToLogin, onRegisterSuccess }) {
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '' })
   const [apiError, setApiError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  function handleFieldChange(name, value, setter) {
+    setter(value)
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: validateField(name, value),
+      }))
+    }
+  }
+
+  function handleFieldBlur(name, value) {
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, value),
+    }))
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -56,25 +85,43 @@ export default function CreateAccount({ onSwitchToLogin, onRegisterSuccess }) {
 
         <label className="field">
           <span className="label-text">First name</span>
-          <input placeholder="John" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+          <input placeholder="Enter your First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
           {errors.firstName && <div className="error-text">{errors.firstName}</div>}
         </label>
 
         <label className="field">
           <span className="label-text">Last name</span>
-          <input placeholder="Doe" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+          <input placeholder="Enter your Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
           {errors.lastName && <div className="error-text">{errors.lastName}</div>}
         </label>
 
         <label className="field">
           <span className="label-text">Email</span>
-          <input placeholder="you@example.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input
+            placeholder="Enter your Email ID"
+            type="email"
+            value={email}
+            onChange={(e) => handleFieldChange('email', e.target.value, setEmail)}
+            onBlur={() => handleFieldBlur('email', email)}
+            required
+          />
           {errors.email && <div className="error-text">{errors.email}</div>}
         </label>
 
         <label className="field">
           <span className="label-text">Phone no.</span>
-          <input placeholder="0123456789" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <input
+            placeholder="Enter your Phone Number"
+            type="tel"
+            inputMode="numeric"
+            maxLength={10}
+            pattern="[0-9]{10}"
+            title="Phone number must be exactly 10 digits"
+            value={phone}
+            onChange={(e) => handleFieldChange('phone', e.target.value, setPhone)}
+            onBlur={() => handleFieldBlur('phone', phone)}
+            required
+          />
           {errors.phone && <div className="error-text">{errors.phone}</div>}
         </label>
 
